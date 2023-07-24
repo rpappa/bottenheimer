@@ -1,0 +1,7 @@
+.env
+.twitter.json
+.vscode
+dist
+node_modules
+src/generated-gql
+graphql.schema.json

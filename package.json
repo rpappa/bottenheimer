@@ -1,0 +1,41 @@
+{
+    "name": "@rpappa/amc",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "codegen": "graphql-codegen --config codegen.ts",
+        "build": "tsc",
+        "monitor": "npm run build && node dist/src/monitor.js",
+        "monitor:twitter": "npm run build && node dist/src/monitor.js --twitter",
+        "twitterauth": "npm run build && node dist/src/util/twitterAuth.js"
+    },
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "@graphql-codegen/cli": "^4.0.1",
+        "@graphql-codegen/client-preset": "^4.0.1",
+        "@graphql-codegen/introspection": "4.0.0",
+        "@graphql-codegen/typescript": "4.0.1",
+        "@graphql-codegen/typescript-document-nodes": "4.0.1",
+        "@graphql-codegen/typescript-operations": "^4.0.1",
+        "@sindresorhus/tsconfig": "^3.0.1",
+        "@types/prompts": "^2.4.4",
+        "@types/tunnel": "^0.0.3",
+        "typescript": "^5.1.6"
+    },
+    "dependencies": {
+        "@rpappa/env": "^1.0.4",
+        "dotenv": "^16.3.1",
+        "got": "^13.0.0",
+        "graphql": "^16.7.1",
+        "graphql-tag": "^2.12.6",
+        "moment": "^2.29.4",
+        "moment-timezone": "^0.5.43",
+        "prompts": "^2.4.2",
+        "tunnel": "^0.0.6",
+        "twitter-api-v2": "^1.15.1"
+    }
+}
