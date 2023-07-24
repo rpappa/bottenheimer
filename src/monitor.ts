@@ -107,7 +107,7 @@ async function fetchSeats(showtimeId: number) {
 }
 
 async function fetchAllShowtimes() {
-    const startDate = moment().tz('America/New_York').startOf('day');
+    const startDate = moment().subtract(5, 'h').startOf('day');
     const endDate = moment().tz('America/New_York').add(1, 'month').startOf('day');
 
     const dates = [];

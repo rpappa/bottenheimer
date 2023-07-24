@@ -41,6 +41,9 @@ if (twitterEnabled) {
     await createClient();
 }
 
+const startedTime = Date.now();
+let totalTweets = 0;
+
 export async function tweetShowtimes(showtime: Showtime, goodSeats: GoodSeats, blocks: number[]) {
     // look for --twitter in process.argv
     if (!twitterEnabled) {
@@ -57,7 +60,23 @@ export async function tweetShowtimes(showtime: Showtime, goodSeats: GoodSeats, b
             showtime.time
         ).fromNow()}). ${goodSeats.map((s) => s?.name ?? '').join(', ')}. Block of ${maxBlock}. ${showtime.link}`;
 
-        console.log(`Would tweet`, tweetBody);
-        // todo: actually tweet
+        console.log(`Tweeting`, tweetBody);
+        if (botClient) {
+            // calculate tweets per hour, and if it's too high (5 or more), don't tweet
+            const hoursElapsed = (Date.now() - startedTime) / 1000 / 60 / 60;
+            const tweetsPerHour = totalTweets / Math.max(hoursElapsed, 1);
+
+            if (tweetsPerHour > 5) {
+                console.log(`Too many tweets per hour (${totalTweets} total, ${tweetsPerHour} per hour), not tweeting`);
+                return;
+            } else {
+                try {
+                    totalTweets++;
+                    await botClient.v2.tweet(tweetBody);
+                } catch (e) {
+                    console.log('Tweeting error', e);
+                }
+            }
+        }
     }
 }
