@@ -4,25 +4,28 @@ import fs from 'fs';
 import moment from 'moment-timezone';
 import { tweetShowtimes } from './twitter.js';
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = async (ms: number) =>
+    new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
 
-// for debugging
-function simplifyObject(obj: any) {
-    // simplifies an object, whenever there is an array, it will only take the first element
+// For debugging
+// function simplifyObject(obj: any) {
+//     // simplifies an object, whenever there is an array, it will only take the first element
 
-    const newObj: any = {};
-    for (const key in obj) {
-        if (Array.isArray(obj[key])) {
-            newObj[key] = [simplifyObject(obj[key][0])];
-        } else if (typeof obj[key] === 'object') {
-            newObj[key] = simplifyObject(obj[key]);
-        } else {
-            newObj[key] = obj[key];
-        }
-    }
+//     const newObj: any = {};
+//     for (const key in obj) {
+//         if (Array.isArray(obj[key])) {
+//             newObj[key] = [simplifyObject(obj[key][0])];
+//         } else if (typeof obj[key] === 'object') {
+//             newObj[key] = simplifyObject(obj[key]);
+//         } else {
+//             newObj[key] = obj[key];
+//         }
+//     }
 
-    return newObj;
-}
+//     return newObj;
+// }
 
 export type Showtime = {
     time: Date;
@@ -31,7 +34,7 @@ export type Showtime = {
 };
 
 async function fetchShowtimes(date: string) {
-    // this is super ugly
+    // This is super ugly
     const { session } = await setTheatre();
     const response = await getShowtimes(date, session);
 
@@ -47,7 +50,7 @@ async function fetchShowtimes(date: string) {
         throw new Error('Movie not found');
     }
 
-    const theatres = foundMovie.theatres;
+    const { theatres } = foundMovie;
 
     if (!theatres) {
         throw new Error('No theatres found');
@@ -84,7 +87,7 @@ async function fetchShowtimes(date: string) {
     }
 
     const output = showTimes.map((s) => ({
-        time: new Date(s?.node?.when),
+        time: new Date(s?.node?.when as string),
         id: s?.node?.showtimeId ?? 0,
         link: `https://www.amctheatres.com/movies/${CONFIG.MOVIE_SLUG}/showtimes/${CONFIG.MOVIE_SLUG}/${date}/${
             CONFIG.THEATRE_SLUG
@@ -116,8 +119,8 @@ async function fetchAllShowtimes() {
     }
 
     const results = await Promise.all(
-        dates.map((d) =>
-            delay(Math.random() * 10_000).then(() =>
+        dates.map(async (d) =>
+            delay(Math.random() * 10_000).then(async () =>
                 fetchShowtimes(d).catch((e) => {
                     console.error(e);
                     return [];
@@ -129,7 +132,7 @@ async function fetchAllShowtimes() {
     return results
         .filter((r) => r.length > 0)
         .flat()
-        .filter((r): r is Showtime => !!r && !!r.id && !!r);
+        .filter((r): r is Showtime => Boolean(r) && Boolean(r.id));
 }
 
 async function findGoodSeats(showtimeId: number) {
@@ -139,7 +142,7 @@ async function findGoodSeats(showtimeId: number) {
         (s) => s?.available && s?.type && s.type.toLowerCase() !== 'wheelchair' && s.type.toLowerCase() !== 'companion'
     );
 
-    // now look for seats in row 4 or greater
+    // Now look for seats in row 4 or greater
     const goodSeats = validSeats.filter((s) => s?.row && s.row >= 4);
 
     return goodSeats;
@@ -148,21 +151,23 @@ async function findGoodSeats(showtimeId: number) {
 export type GoodSeats = Awaited<ReturnType<typeof findGoodSeats>>;
 
 function describeBlocks(seats: GoodSeats) {
-    // return eligible block descriptions, e.g. if there are 3 seats in a row, return [1,2,3]
+    // Return eligible block descriptions, e.g. if there are 3 seats in a row, return [1,2,3]
     // if there are 2 seats in a row, return [1,2], etc
 
     // extract seats by rows
     const rows: { [rowNum: number]: GoodSeats } = {};
 
     for (const seat of seats) {
-        if (!seat || !seat?.column || !seat?.row) {
+        if (!seat?.column || !seat?.row) {
             continue;
         }
+
         const theRow = rows[seat.row];
-        if (!theRow) {
-            rows[seat.row] = [seat];
-        } else {
+
+        if (theRow) {
             theRow.push(seat);
+        } else {
+            rows[seat.row] = [seat];
         }
     }
 
@@ -174,15 +179,15 @@ function describeBlocks(seats: GoodSeats) {
             continue;
         }
 
-        // sort by column
+        // Sort by column
         row.sort((a, b) => (a?.column ?? 0) - (b?.column ?? 0));
 
-        // find blocks
+        // Find blocks
         let blockStart = 0;
         let blockEnd = 0;
         for (let i = 0; i < row.length; i++) {
             const seat = row[i];
-            if (!seat || seat.column === undefined || seat.column === null) {
+            if (seat?.column === undefined || seat.column === null) {
                 continue;
             }
 
@@ -193,18 +198,19 @@ function describeBlocks(seats: GoodSeats) {
                 blockEnd = seat.column;
             } else {
                 blockDescriptions.add(blockEnd - blockStart + 1);
-                // also add smaller blocks
+                // Also add smaller blocks
                 for (let j = blockStart; j < blockEnd; j++) {
                     blockDescriptions.add(j - blockStart + 1);
                 }
+
                 blockStart = seat.column;
                 blockEnd = seat.column;
             }
         }
 
-        // add the last block
+        // Add the last block
         blockDescriptions.add(blockEnd - blockStart + 1);
-        // also add smaller blocks
+        // Also add smaller blocks
         for (let j = blockStart; j < blockEnd; j++) {
             blockDescriptions.add(j - blockStart + 1);
         }
@@ -234,8 +240,10 @@ async function checkForNewSeats(showtimeId: number, seen: Set<string>) {
 async function monitorLoop(showtime: Showtime) {
     const seenSet = new Set<string>();
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         try {
+            // eslint-disable-next-line no-await-in-loop
             const newSeats = await checkForNewSeats(showtime.id, seenSet);
 
             const blocks = describeBlocks(newSeats);
@@ -251,13 +259,16 @@ async function monitorLoop(showtime: Showtime) {
                     showtime.link
                 );
 
-                tweetShowtimes(showtime, newSeats, blocks);
+                tweetShowtimes(showtime, newSeats, blocks).catch((e) => {
+                    console.error(e);
+                });
             }
         } catch (e) {
-            // do nothing
+            // Do nothing
             console.error(`error for`, showtime.id, showtime.time);
         }
 
+        // eslint-disable-next-line no-await-in-loop
         await delay(60_000 + Math.random() * 30_000);
     }
 }
@@ -267,9 +278,11 @@ async function main() {
     console.log(`Monitoring ${showtimes.length} showtimes`);
 
     for (const showTime of showtimes) {
+        // eslint-disable-next-line no-await-in-loop
         await delay(Math.random() * 3_000);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         monitorLoop(showTime);
     }
 }
 
-main();
+await main();

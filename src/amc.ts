@@ -3,11 +3,11 @@ import { env, envStr } from '@rpappa/env';
 import SHOWTIMES_CONTAINER from './operations/showtimesContainer.js';
 import SET_THEATRE from './operations/setTheatre.js';
 import {
-    SetTheatreMutationVariables,
-    ShowtimesContainerQuery,
-    ShowtimesContainerQueryVariables,
-    SeatSelectionQuery,
-    SeatSelectionQueryVariables,
+    type SetTheatreMutationVariables,
+    type ShowtimesContainerQuery,
+    type ShowtimesContainerQueryVariables,
+    type SeatSelectionQuery,
+    type SeatSelectionQueryVariables,
     UserLocationType,
 } from './generated-gql/graphql.js';
 import CONFIG from './config.js';
@@ -27,7 +27,7 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 const got = defaultGot.extend({
     prefixUrl: 'https://graph.amctheatres.com/',
     headers: {
-        // it appears that we don't really need any of these headers
+        // It appears that we don't really need any of these headers
         // to be a good citizen, we'll set the user-agent to something that identifies us
         'user-agent': `bottenheimer/${envStr`npm_package_version`}`,
         // 'Accept-Language': 'en-US,en;q=0.9',
@@ -55,7 +55,7 @@ const got = defaultGot.extend({
     },
 });
 
-// need to handle session from the connect.sid cookie, we'll use a functional approach to pass it around
+// Need to handle session from the connect.sid cookie, we'll use a functional approach to pass it around
 
 type AMCSession = string;
 
@@ -88,7 +88,7 @@ async function gqlExecute<QueryType>(
         }
     }
 
-    // fall back to the old session if we didn't get a new one
+    // Fall back to the old session if we didn't get a new one
     return { data: response.body.data, session: newSession ?? session };
 }
 
@@ -116,7 +116,7 @@ export async function getShowtimes(date: string, session?: AMCSession) {
     const operation = SHOWTIMES_CONTAINER;
     const variables: ShowtimesContainerQueryVariables = {
         allMoviesSelected: false,
-        // format is YYYY-MM-DD
+        // Format is YYYY-MM-DD
         date,
         movieSlug: CONFIG.MOVIE_SLUG,
         theatreSlug: CONFIG.THEATRE_SLUG,

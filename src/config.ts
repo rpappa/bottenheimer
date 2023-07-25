@@ -1,4 +1,4 @@
-// you may want to modify this for other theatres/movies.
+// You may want to modify this for other theatres/movies.
 // Check the devtools for graph.amctheatres.com
 const CONFIG = {
     MOVIE_SLUG: 'oppenheimer-66956',

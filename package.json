@@ -2,7 +2,7 @@
     "name": "@rpappa/amc",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "dist/src/monitor.js",
     "type": "module",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,7 +10,9 @@
         "build": "tsc",
         "monitor": "npm run build && node dist/src/monitor.js",
         "monitor:twitter": "npm run build && node dist/src/monitor.js --twitter",
-        "twitterauth": "npm run build && node dist/src/util/twitterAuth.js"
+        "twitterauth": "npm run build && node dist/src/util/twitterAuth.js",
+        "lint": "npx eslint .",
+        "prepare": "husky install"
     },
     "author": "",
     "license": "MIT",
@@ -24,7 +26,16 @@
         "@sindresorhus/tsconfig": "^3.0.1",
         "@types/prompts": "^2.4.4",
         "@types/tunnel": "^0.0.3",
-        "typescript": "^5.1.6"
+        "@typescript-eslint/eslint-plugin": "^6.2.0",
+        "@typescript-eslint/parser": "^6.2.0",
+        "eslint": "^8.45.0",
+        "eslint-config-prettier": "^8.8.0",
+        "eslint-config-xo": "^0.43.1",
+        "eslint-config-xo-typescript": "^1.0.1",
+        "eslint-plugin-prettier": "^5.0.0",
+        "prettier": "3.0.0",
+        "typescript": "^5.1.6",
+        "husky": "^8.0.0"
     },
     "dependencies": {
         "@rpappa/env": "^1.0.4",

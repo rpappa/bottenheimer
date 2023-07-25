@@ -1,7 +1,7 @@
 import { gql } from 'graphql-tag';
 import { print } from 'graphql';
 
-const SeatSelection = gql`
+const SEAT_SELECTION = gql`
     query SeatSelection($showtimeId: Int!, $token: String, $hasToken: Boolean!) {
         viewer {
             id
@@ -887,5 +887,5 @@ const SeatSelection = gql`
     }
 `;
 
-const SEAT_SELECTION_QUERY = print(SeatSelection);
+const SEAT_SELECTION_QUERY = print(SEAT_SELECTION);
 export default SEAT_SELECTION_QUERY;

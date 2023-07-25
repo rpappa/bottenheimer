@@ -21,7 +21,7 @@ async function doAuth() {
         message: 'Paste the redirect URL here',
     });
 
-    const parsed = new URL(response.redirect);
+    const parsed = new URL(`${response.redirect}`);
 
     const code = parsed.searchParams.get('code');
 
