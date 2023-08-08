@@ -142,9 +142,11 @@ async function findGoodSeats(showtimeId: number) {
     const seatsByRow: { [rowNum: number]: number } = {};
     for (const seat of seats) {
         const row = seat?.row;
+        const column = seat?.column;
 
-        if (row) {
-            seatsByRow[row] = (seatsByRow[row] ?? 0) + 1;
+        if (row && column) {
+            // Use the max column number instead of counting the number of seats in the row
+            seatsByRow[row] = Math.max(seatsByRow[row] ?? 0, column);
         }
     }
 
@@ -154,7 +156,7 @@ async function findGoodSeats(showtimeId: number) {
 
     const isGoodSeat = (seat: (typeof validSeats)[0]) => {
         // Must be in row 5 or greater and in the middle 2/3 of the row
-        // This is to keep tweet spam down
+        // This is to keep tweet spam down and avoid rate limits
         if (!seat?.row || !seat?.column) {
             return false;
         }
@@ -170,9 +172,9 @@ async function findGoodSeats(showtimeId: number) {
             return false;
         }
 
-        // Must be in the middle 2/3 of the row
-        const lowerBound = seatsInRow / 3;
-        const upperBound = (seatsInRow * 2) / 3;
+        // Must be in the middle 2/3 of the row, so leave 1/6 on each side
+        const lowerBound = seatsInRow / 6;
+        const upperBound = (seatsInRow * 5) / 6;
 
         return column >= lowerBound && column <= upperBound;
     };
