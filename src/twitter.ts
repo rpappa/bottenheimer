@@ -51,7 +51,7 @@ export async function tweetShowtimes(showtime: Showtime, goodSeats: GoodSeats, b
         return;
     }
 
-    const showtimeTime = moment(showtime.time);
+    const showtimeTime = moment(showtime.time).tz('America/New_York');
     // If showtime.time is in the past, don't tweet
     if (showtimeTime.isBefore(moment())) {
         return;
