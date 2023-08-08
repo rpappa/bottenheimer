@@ -51,13 +51,31 @@ export async function tweetShowtimes(showtime: Showtime, goodSeats: GoodSeats, b
         return;
     }
 
+    const showtimeTime = moment(showtime.time);
     // If showtime.time is in the past, don't tweet
-    if (moment(showtime.time).isBefore(moment())) {
+    if (showtimeTime.isBefore(moment())) {
         return;
+    }
+
+    // If a showtime is in more than 14 days, only tweet about the 630pm and 1030pm showtimes
+    // Unless it's a weekend, then tweet about all showtimes
+    const isFarFuture = showtimeTime.isAfter(moment().add(14, 'days'));
+    if (isFarFuture) {
+        const hour = showtimeTime.hour();
+        const day = showtimeTime.day();
+        if (hour < 18 && !(day === 6 || day === 0)) {
+            return;
+        }
     }
 
     if (blocks.some((b) => b > 1)) {
         const maxBlock = Math.max(...blocks);
+
+        // For far future showtimes, only tweet if there are 3 or more seats in the block
+        if (isFarFuture && maxBlock < 3) {
+            return;
+        }
+
         const formattedDateTime = moment(showtime.time).tz('America/New_York').format('M/D h:mm A');
         const tweetBody = `${goodSeats.length} seats available for ${formattedDateTime} (${moment(
             showtime.time
