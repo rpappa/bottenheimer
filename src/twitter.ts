@@ -68,6 +68,14 @@ export async function tweetShowtimes(showtime: Showtime, goodSeats: GoodSeats, b
         }
     }
 
+    // New showtimes are after Aug 17 2023
+    const isNewShowtime = showtimeTime.isAfter(moment('2023-08-17'));
+    // If it's a new showtime, only tweet if goodSeats.length < 10, since otherwise
+    // seats are still widely available
+    if (isNewShowtime && goodSeats.length >= 10) {
+        return;
+    }
+
     if (blocks.some((b) => b > 1)) {
         const maxBlock = Math.max(...blocks);
 
