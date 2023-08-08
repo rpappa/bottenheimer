@@ -138,12 +138,46 @@ async function fetchAllShowtimes() {
 async function findGoodSeats(showtimeId: number) {
     const seats = await fetchSeats(showtimeId);
 
+    // Find the number of seats in each row
+    const seatsByRow: { [rowNum: number]: number } = {};
+    for (const seat of seats) {
+        const row = seat?.row;
+
+        if (row) {
+            seatsByRow[row] = (seatsByRow[row] ?? 0) + 1;
+        }
+    }
+
     const validSeats = seats.filter(
         (s) => s?.available && s?.type && s.type.toLowerCase() !== 'wheelchair' && s.type.toLowerCase() !== 'companion'
     );
 
-    // Now look for seats in row 4 or greater
-    const goodSeats = validSeats.filter((s) => s?.row && s.row >= 4);
+    const isGoodSeat = (seat: (typeof validSeats)[0]) => {
+        // Must be in row 5 or greater and in the middle 2/3 of the row
+        // This is to keep tweet spam down
+        if (!seat?.row || !seat?.column) {
+            return false;
+        }
+
+        const { row, column } = seat;
+
+        if (row <= 4) {
+            return false;
+        }
+
+        const seatsInRow = seatsByRow[row];
+        if (!seatsInRow) {
+            return false;
+        }
+
+        // Must be in the middle 2/3 of the row
+        const lowerBound = seatsInRow / 3;
+        const upperBound = (seatsInRow * 2) / 3;
+
+        return column >= lowerBound && column <= upperBound;
+    };
+
+    const goodSeats = validSeats.filter(isGoodSeat);
 
     return goodSeats;
 }
